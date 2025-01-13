@@ -15,6 +15,8 @@ import org.hibernate.validator.constraints.NotBlank;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+
 @RestController
 @RequestMapping("/api/v1/posts")
 @RequiredArgsConstructor
@@ -82,9 +84,15 @@ public class ApiV1PostController {
     @PostMapping
     @Transactional
     public RsData<PostWithContentDto> write(
-            @RequestBody @Valid PostWriteReqBody reqBody
+            @RequestBody @Valid PostWriteReqBody reqBody,
+             Principal principal
     ) {
         Member actor = rq.checkAuthentication();
+
+
+        if (principal != null) {
+            actor = rq.getActorByUsername(principal.getName());
+        }
 
         Post post = postService.write(
                 actor,
