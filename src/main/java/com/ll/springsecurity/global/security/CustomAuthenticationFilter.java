@@ -1,5 +1,7 @@
 package com.ll.springsecurity.global.security;
 
+import com.ll.springsecurity.domain.member.member.entity.Member;
+import com.ll.springsecurity.domain.member.member.service.MemberService;
 import com.ll.springsecurity.global.rq.Rq;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -9,15 +11,35 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
 public class CustomAuthenticationFilter extends OncePerRequestFilter {
+	private final MemberService memberService;
 	private final Rq rq;
 
 	@Override
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-		rq.setLogin("user1"); //user1로 강제
+		if (!request.getRequestURI().startsWith("/api/")) {
+			filterChain.doFilter(request, response);
+			return;
+		}
+		String authorization = request.getHeader("Authorization");
+		if (authorization == null || !authorization.startsWith("Bearer ")) {
+			filterChain.doFilter(request, response);
+			return;
+		}
+
+		String apiKey = authorization.substring("Bearer ".length());
+		Optional<Member> opMember = memberService.findByApiKey(apiKey);
+		if (opMember.isEmpty()) {
+			filterChain.doFilter(request, response);
+			return;
+		}
+
+		Member member = opMember.get();
+		rq.setLogin(member.getUsername());
 
 		filterChain.doFilter(request, response);
 	}
