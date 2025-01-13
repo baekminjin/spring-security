@@ -6,9 +6,15 @@ import com.ll.springsecurity.global.exceptions.ServiceException;
 import com.ll.springsecurity.standard.util.Ut;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.annotation.RequestScope;
 
+import java.util.List;
 import java.util.Optional;
 
 // Request/Response 를 추상화한 객체
@@ -41,4 +47,21 @@ public class Rq {
 	public Member getActorByUsername(String username) {
         return memberService.findByUsername(username).get();
 	}
+
+    // 스프링 시큐리티가 이해하는 방식으로 강제 로그인 처리
+    // 임시함수
+    // 강제로 user1로 로그인 처리
+    public void setLogin(String username) {
+        UserDetails user = new User(
+                username,
+                "",
+                List.of()
+        );
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                user,
+                user.getPassword(),
+                user.getAuthorities()
+        );
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
 }
