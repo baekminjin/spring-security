@@ -83,7 +83,7 @@ public class ApiV1MemberController {
     @GetMapping("/me")
     @Transactional(readOnly = true)
     public MemberDto me() {
-        Member member = rq.checkAuthentication();
+        Member member = rq.getActor();
 
         return new MemberDto(member);
     }
